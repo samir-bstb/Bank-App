@@ -1,0 +1,2 @@
+-- Seed data for local development
+-- Run: supabase db reset (applies migrations then this file)
