@@ -1,6 +1,10 @@
-import { jwtVerify, type JWTPayload } from 'jose';
+import { jwtVerify, createRemoteJWKSet, type JWTPayload } from 'jose';
 
-const secret = new TextEncoder().encode(process.env.SUPABASE_JWT_SECRET!);
+// Supabase signs JWTs with ES256 (asymmetric). The public keys are served at
+// the JWKS endpoint and cached by jose — no extra env variable needed.
+const JWKS = createRemoteJWKSet(
+  new URL(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/.well-known/jwks.json`),
+);
 
 export interface SupabaseJwtPayload extends JWTPayload {
   sub: string;
@@ -9,6 +13,6 @@ export interface SupabaseJwtPayload extends JWTPayload {
 }
 
 export async function verifySupabaseToken(token: string): Promise<SupabaseJwtPayload> {
-  const { payload } = await jwtVerify(token, secret);
+  const { payload } = await jwtVerify(token, JWKS);
   return payload as SupabaseJwtPayload;
 }
