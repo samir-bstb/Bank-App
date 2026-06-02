@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
-    "seed": "dotenv -e .env.local -- npx tsx ../../supabase/seed-users.ts"
+    "seed": "dotenv -e .env.local -- npx tsx ../../supabase/seed-users.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@bank-app/shared": "workspace:*",
@@ -23,10 +26,12 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@vitest/coverage-v8": "^4.1.8",
     "dotenv-cli": "^11.0.0",
     "eslint": "^9.0.0",
     "eslint-config-next": "^15.3.0",
     "tsx": "^4.22.4",
-    "typescript": "~5.9.2"
+    "typescript": "~5.9.2",
+    "vitest": "^4.1.8"
   }
 }

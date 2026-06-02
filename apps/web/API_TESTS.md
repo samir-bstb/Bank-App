@@ -1,6 +1,6 @@
 # API REST — Tests con cURL
 
-Base URL: `http://localhost:3000`
+Base URL: `https://bank-up-api.netlify.app/`
 
 Antes de correr los tests autenticados, guarda el token en una variable de shell:
 
