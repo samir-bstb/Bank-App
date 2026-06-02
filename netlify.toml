@@ -1,0 +1,13 @@
+[build]
+  # Indica la ruta hacia la carpeta que quieres desplegar
+  base = "apps/web"
+  
+  # Comando para compilar Next.js desde dentro de apps/web
+  command = "pnpm build"
+  
+  # Carpeta de salida que Netlify va a leer para servir tu API
+  publish = ".next"
+
+[[plugins]]
+  # Plugin obligatorio de Netlify para que las API Routes y SSR de Next.js funcionen como Serverless Functions
+  package = "@netlify/plugin-nextjs"
