@@ -5,7 +5,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 
-type ButtonProps = {
+type Props = {
   title: string;
   onPress: () => void;
   loading?: boolean;
@@ -14,8 +14,8 @@ type ButtonProps = {
 export default function Button({
   title,
   onPress,
-  loading = false,
-}: ButtonProps) {
+  loading,
+}: Props) {
   return (
     <TouchableOpacity
       style={styles.button}
@@ -25,7 +25,9 @@ export default function Button({
       {loading ? (
         <ActivityIndicator color="#fff" />
       ) : (
-        <Text style={styles.text}>{title}</Text>
+        <Text style={styles.text}>
+          {title}
+        </Text>
       )}
     </TouchableOpacity>
   );
@@ -33,15 +35,15 @@ export default function Button({
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#0066cc',
-    paddingVertical: 14,
+    backgroundColor: '#0066FF',
+    padding: 16,
     borderRadius: 8,
     alignItems: 'center',
-    width: '100%',
   },
+
   text: {
-    color: '#fff',
-    fontWeight: '600',
+    color: '#FFF',
+    fontWeight: 'bold',
     fontSize: 16,
   },
 });
