@@ -45,8 +45,6 @@ export default function HomeScreen() {
 
   async function loadAccount() {
     try {
-      
-
       const accounts =
         await getAccounts(token!);
 
