@@ -1,7 +1,7 @@
 import { type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
-const MAX_FAILED_ATTEMPTS = 4;
+const MAX_FAILED_ATTEMPTS = 3;
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
