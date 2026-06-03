@@ -19,9 +19,6 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={{ fontSize: 40, color: 'blue' }}>
-        HOME SCREEN
-      </Text>
       <Text style={styles.title}>
         Welcome {user?.username}
       </Text>

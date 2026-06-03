@@ -37,27 +37,28 @@ export default function LoginScreen() {
 
       router.replace('/home');
     } catch (error) {
+      console.log('Login error:', error);
+
       const message =
         error instanceof Error
           ? error.message
           : 'unknown_error';
 
+      console.log('Error message:', message);
+
       if (message === 'account_blocked') {
-        Alert.alert(
-          'Account Locked',
-          'Please contact the administrator.'
+        window.alert(
+          'Account Locked. Please contact the administrator.'
         );
       } else if (
         message === 'invalid_credentials'
       ) {
-        Alert.alert(
-          'Login Failed',
-          'Invalid username or password.'
+        window.alert(
+          'Login Failed. Invalid username or password.'
         );
       } else {
-        Alert.alert(
-          'Error',
-          'Unable to login.'
+        window.alert(
+          'Error, Unable to login.'
         );
       }
     } finally {
