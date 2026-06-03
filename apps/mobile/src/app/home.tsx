@@ -38,17 +38,17 @@ export default function HomeScreen() {
     useState(true);
 
   useEffect(() => {
-    loadAccount();
-  }, []);
+    if (token) {
+      loadAccount();
+    }
+  }, [token]);
 
   async function loadAccount() {
     try {
-      if (!token) {
-        return;
-      }
+      
 
       const accounts =
-        await getAccounts(token);
+        await getAccounts(token!);
 
       console.log(
         'Accounts response:',
