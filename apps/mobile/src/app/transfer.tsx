@@ -108,14 +108,16 @@ export default function TransferScreen() {
           <Text style={styles.accountNumber}>{senderAccountNumber}</Text>
         </View>
 
-        <Text style={styles.label}>Recipient Account ID</Text>
+        <Text style={styles.label}>Recipient Account Number</Text>
         <TextInput
           style={styles.input}
-          placeholder="Enter recipient account UUID"
+          placeholder="16-digit account number"
           value={receiverAccountId}
           onChangeText={setReceiverAccountId}
           autoCapitalize="none"
           autoCorrect={false}
+          keyboardType="number-pad"
+          maxLength={16}
         />
 
         <Text style={styles.label}>Amount</Text>
