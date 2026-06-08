@@ -1,6 +1,8 @@
 import { type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function POST(request: NextRequest) {
   const userId = request.headers.get('x-user-id')!;
   const body = await request.json().catch(() => null);
@@ -26,9 +28,25 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'sender_account_not_found' }, { status: 404 });
   }
 
+  // Accept UUID or account_number for the receiver — look up UUID if needed
+  let receiverUuid: string = receiver_account_id;
+  if (!UUID_RE.test(receiver_account_id)) {
+    const { data: receiverAccount } = await supabase
+      .from('accounts')
+      .select('id')
+      .eq('account_number', receiver_account_id)
+      .eq('is_active', true)
+      .single();
+
+    if (!receiverAccount) {
+      return Response.json({ error: 'receiver_account_not_found' }, { status: 404 });
+    }
+    receiverUuid = receiverAccount.id;
+  }
+
   const { data, error } = await supabase.rpc('transfer_funds', {
     p_sender_account_id: sender_account_id,
-    p_receiver_account_id: receiver_account_id,
+    p_receiver_account_id: receiverUuid,
     p_amount: amount,
     p_user_id: userId,
   });
