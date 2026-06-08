@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
 
   if (error) {
     const msg = error.message;
+    console.error('[transfer] RPC error:', { code: error.code, message: msg, details: error.details, hint: error.hint });
     if (msg.includes('insufficient_funds')) {
       return Response.json({ error: 'insufficient_funds' }, { status: 422 });
     }
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest) {
     if (msg.includes('invalid_amount')) {
       return Response.json({ error: 'invalid_amount' }, { status: 400 });
     }
-    return Response.json({ error: 'transfer_failed' }, { status: 500 });
+    return Response.json({ error: 'transfer_failed', detail: msg }, { status: 500 });
   }
 
   return Response.json(data, { status: 201 });
