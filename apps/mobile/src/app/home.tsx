@@ -76,6 +76,10 @@ export default function HomeScreen() {
     router.push('/transfer');
   }
 
+  function handleAdminPanel() {
+    router.push('/admin');
+  }
+
   function handleLogout() {
     if (Platform.OS === 'web') {
       const confirmed =
@@ -145,6 +149,16 @@ export default function HomeScreen() {
         title="Transfer"
         onPress={handleTransfer}
       />
+
+      {user?.role === 'admin' && (
+        <>
+          <View style={styles.spacing} />
+          <Button
+            title="Admin Panel"
+            onPress={handleAdminPanel}
+          />
+        </>
+      )}
 
       <View style={styles.spacing} />
 
