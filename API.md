@@ -17,6 +17,10 @@
   - [GET /api/transactions](#get-apitransactions)
   - [POST /api/transactions/transfer](#post-apitransactionstransfer)
   - [GET /api/logs](#get-apilogs)
+- [Rutas de administración](#rutas-de-administración)
+  - [GET /api/admin/users](#get-apiadminusers)
+  - [GET /api/admin/users/:id](#get-apiadminusersid)
+  - [PATCH /api/admin/users/:id](#patch-apiadminusersid)
 - [Seguridad](#seguridad)
 - [Modelo de datos](#modelo-de-datos)
 
@@ -26,13 +30,13 @@
 
 Las rutas protegidas requieren un **Bearer token** en el header `Authorization`.
 
-```
+```http
 Authorization: Bearer <token>
 ```
 
 El token se obtiene al registrarse (`/api/auth/register`) o al iniciar sesión (`/api/auth/login`). Es un JWT firmado por Supabase Auth con una vigencia de **1 hora**.
 
-### Estructura del JWT
+#### Estructura del JWT
 
 El payload del token contiene los siguientes campos relevantes:
 
@@ -88,7 +92,7 @@ No requieren token de autenticación.
 
 Crea una nueva cuenta de usuario y devuelve un token de sesión listo para usar.
 
-**Request body**
+#### Request body
 
 ```json
 {
@@ -102,7 +106,7 @@ Crea una nueva cuenta de usuario y devuelve un token de sesión listo para usar.
 | `username` | Sí | 3–30 caracteres, solo letras, números y guión bajo |
 | `password` | Sí | Mínimo 8 caracteres, al menos una mayúscula, una minúscula y un dígito |
 
-**Respuesta exitosa — `201 Created`**
+#### Respuesta exitosa — 201 Created
 
 ```json
 {
@@ -115,7 +119,7 @@ Crea una nueva cuenta de usuario y devuelve un token de sesión listo para usar.
 }
 ```
 
-**Errores posibles**
+#### Errores posibles
 
 | Código HTTP | `error` | Causa |
 | --- | --- | --- |
@@ -131,7 +135,7 @@ Crea una nueva cuenta de usuario y devuelve un token de sesión listo para usar.
 
 Inicia sesión con un usuario existente.
 
-**Request body**
+#### Request body
 
 ```json
 {
@@ -140,7 +144,7 @@ Inicia sesión con un usuario existente.
 }
 ```
 
-**Respuesta exitosa — `200 OK`**
+#### Respuesta exitosa — 200 OK
 
 ```json
 {
@@ -153,7 +157,7 @@ Inicia sesión con un usuario existente.
 }
 ```
 
-**Errores posibles**
+#### Errores posibles
 
 | Código HTTP | `error` | Causa |
 | --- | --- | --- |
@@ -161,7 +165,7 @@ Inicia sesión con un usuario existente.
 | `401` | `invalid_credentials` | Usuario no existe o contraseña incorrecta |
 | `403` | `account_blocked` | La cuenta fue bloqueada por demasiados intentos fallidos |
 
-> **Seguridad:** después de **5 intentos fallidos consecutivos** la cuenta queda bloqueada (`is_blocked = true`) y ya no se puede iniciar sesión aunque se proporcione la contraseña correcta. El contador se resetea a 0 en cada login exitoso. El desbloqueo debe hacerse a nivel de administración.
+> **Seguridad:** después de **3 intentos fallidos consecutivos** la cuenta queda bloqueada (`is_blocked = true`) y ya no se puede iniciar sesión aunque se proporcione la contraseña correcta. El contador se resetea a 0 en cada login exitoso. Un administrador puede desbloquearla con `PATCH /api/admin/users/:id`.
 
 ---
 
@@ -169,7 +173,7 @@ Inicia sesión con un usuario existente.
 
 Verifica que el servidor esté activo.
 
-**Respuesta — `200 OK`**
+#### Respuesta — 200 OK
 
 ```json
 { "status": "ok" }
@@ -181,7 +185,7 @@ Verifica que el servidor esté activo.
 
 Todas requieren el header:
 
-```
+```http
 Authorization: Bearer <token>
 ```
 
@@ -198,7 +202,7 @@ Si el token falta, expiró o es inválido, la respuesta será:
 
 Devuelve el perfil del usuario autenticado.
 
-**Respuesta exitosa — `200 OK`**
+#### Respuesta exitosa — 200 OK
 
 ```json
 {
@@ -211,7 +215,7 @@ Devuelve el perfil del usuario autenticado.
 }
 ```
 
-**Errores posibles**
+#### Errores posibles
 
 | Código HTTP | `error` | Causa |
 | --- | --- | --- |
@@ -223,7 +227,7 @@ Devuelve el perfil del usuario autenticado.
 
 Devuelve las cuentas bancarias activas del usuario autenticado.
 
-**Respuesta exitosa — `200 OK`**
+#### Respuesta exitosa — 200 OK
 
 ```json
 {
@@ -242,7 +246,7 @@ Devuelve las cuentas bancarias activas del usuario autenticado.
 
 > Si el usuario no tiene cuentas activas, `accounts` es un array vacío `[]`.
 
-**Errores posibles**
+#### Errores posibles
 
 | Código HTTP | `error` | Causa |
 | --- | --- | --- |
@@ -254,13 +258,13 @@ Devuelve las cuentas bancarias activas del usuario autenticado.
 
 Devuelve el detalle de una cuenta específica del usuario autenticado.
 
-**Parámetro de ruta**
+#### Parámetro de ruta
 
 | Parámetro | Tipo | Descripción |
 | --- | --- | --- |
 | `id` | UUID | ID de la cuenta |
 
-**Respuesta exitosa — `200 OK`**
+#### Respuesta exitosa — 200 OK
 
 ```json
 {
@@ -275,7 +279,7 @@ Devuelve el detalle de una cuenta específica del usuario autenticado.
 }
 ```
 
-**Errores posibles**
+#### Errores posibles
 
 | Código HTTP | `error` | Causa |
 | --- | --- | --- |
@@ -289,19 +293,19 @@ Devuelve el detalle de una cuenta específica del usuario autenticado.
 
 Devuelve el historial de movimientos de una cuenta, ordenados del más reciente al más antiguo.
 
-**Query parameters**
+#### Query parameters
 
 | Parámetro | Requerido | Descripción |
 | --- | --- | --- |
 | `account_id` | Sí | UUID de la cuenta a consultar |
 
-**Ejemplo**
+#### Ejemplo
 
-```
+```http
 GET /api/transactions?account_id=b1a2c3d4-...
 ```
 
-**Respuesta exitosa — `200 OK`**
+#### Respuesta exitosa — 200 OK
 
 ```json
 {
@@ -320,7 +324,7 @@ GET /api/transactions?account_id=b1a2c3d4-...
 
 > El listado incluye tanto las transferencias **enviadas** como las **recibidas** por la cuenta indicada.
 
-**Errores posibles**
+#### Errores posibles
 
 | Código HTTP | `error` | Causa |
 | --- | --- | --- |
@@ -334,12 +338,12 @@ GET /api/transactions?account_id=b1a2c3d4-...
 
 Ejecuta una transferencia de fondos entre dos cuentas. La operación es **atómica** (ACID): si cualquier paso falla, ningún saldo cambia.
 
-**Request body**
+#### Request body
 
 ```json
 {
   "sender_account_id": "b1a2c3d4-...",
-  "receiver_account_id": "e5f6a7b8-...",
+  "receiver_account_id": "1000000000000002",
   "amount": 200.00
 }
 ```
@@ -347,10 +351,12 @@ Ejecuta una transferencia de fondos entre dos cuentas. La operación es **atómi
 | Campo | Requerido | Descripción |
 | --- | --- | --- |
 | `sender_account_id` | Sí | UUID de la cuenta que envía (debe pertenecer al usuario autenticado) |
-| `receiver_account_id` | Sí | UUID de la cuenta que recibe (puede ser de cualquier usuario) |
+| `receiver_account_id` | Sí | UUID **o número de cuenta** (16 dígitos) de la cuenta que recibe |
 | `amount` | Sí | Monto a transferir — número positivo mayor a 0 |
 
-**Respuesta exitosa — `201 Created`**
+> `receiver_account_id` acepta tanto el UUID interno como el número de cuenta de 16 dígitos. El API resuelve el número de cuenta a UUID internamente antes de ejecutar la transferencia.
+
+#### Respuesta exitosa — 201 Created
 
 ```json
 {
@@ -360,7 +366,7 @@ Ejecuta una transferencia de fondos entre dos cuentas. La operación es **atómi
 }
 ```
 
-**Errores posibles**
+#### Errores posibles
 
 | Código HTTP | `error` | Causa |
 | --- | --- | --- |
@@ -381,19 +387,19 @@ Devuelve el historial de eventos de auditoría.
 - Un usuario con rol `client` solo ve sus propios logs.
 - Un usuario con rol `admin` puede ver los logs de cualquier usuario usando el query param `user_id`.
 
-**Query parameters (solo para admin)**
+#### Query parameters (solo para admin)
 
 | Parámetro | Requerido | Descripción |
 | --- | --- | --- |
 | `user_id` | No | UUID del usuario cuyos logs se quieren filtrar |
 
-**Ejemplo (admin filtrando un usuario)**
+#### Ejemplo (admin filtrando un usuario)
 
-```
+```http
 GET /api/logs?user_id=1a32ad5d-...
 ```
 
-**Respuesta exitosa — `200 OK`**
+#### Respuesta exitosa — 200 OK
 
 ```json
 {
@@ -409,7 +415,7 @@ GET /api/logs?user_id=1a32ad5d-...
 }
 ```
 
-**Tipos de eventos registrados (`event_type`)**
+#### Tipos de eventos registrados (`event_type`)
 
 | Evento | Cuándo se genera |
 | --- | --- |
@@ -419,11 +425,133 @@ GET /api/logs?user_id=1a32ad5d-...
 | `login_blocked` | Intento de login sobre una cuenta bloqueada |
 | `transfer` | Transferencia completada |
 
-**Errores posibles**
+#### Errores posibles
 
 | Código HTTP | `error` | Causa |
 | --- | --- | --- |
 | `500` | `failed_to_fetch_logs` | Error interno al consultar la base de datos |
+
+---
+
+## Rutas de administración
+
+Requieren token con `role: admin`. Si el rol es distinto, todas las rutas de este grupo devuelven `403 forbidden`.
+
+```http
+Authorization: Bearer <admin_token>
+```
+
+---
+
+### GET /api/admin/users
+
+Devuelve la lista completa de usuarios registrados en el sistema.
+
+#### Respuesta exitosa — 200 OK
+
+```json
+{
+  "users": [
+    {
+      "id": "1a32ad5d-...",
+      "username": "alice",
+      "role": "client",
+      "failed_attempts": 0,
+      "is_blocked": false,
+      "created_at": "2026-06-01T00:00:00Z"
+    }
+  ]
+}
+```
+
+#### Errores posibles
+
+| Código HTTP | `error` | Causa |
+| --- | --- | --- |
+| `403` | `forbidden` | El token no tiene rol `admin` |
+| `500` | `fetch_failed` | Error interno |
+
+---
+
+### GET /api/admin/users/:id
+
+Devuelve el perfil completo de un usuario junto con su cuenta bancaria.
+
+#### Parámetro de ruta
+
+| Parámetro | Tipo | Descripción |
+| --- | --- | --- |
+| `id` | UUID | ID del usuario |
+
+#### Respuesta exitosa — 200 OK
+
+```json
+{
+  "user": {
+    "id": "1a32ad5d-...",
+    "username": "alice",
+    "role": "client",
+    "failed_attempts": 0,
+    "is_blocked": false,
+    "created_at": "2026-06-01T00:00:00Z",
+    "account": {
+      "id": "b1a2c3d4-...",
+      "account_number": "1000000000000001",
+      "balance": 5000.00,
+      "is_active": true
+    }
+  }
+}
+```
+
+> El campo `account` es `null` si el usuario no tiene cuenta bancaria asociada.
+
+#### Errores posibles
+
+| Código HTTP | `error` | Causa |
+| --- | --- | --- |
+| `403` | `forbidden` | El token no tiene rol `admin` |
+| `404` | `user_not_found` | No existe un usuario con ese ID |
+
+---
+
+### PATCH /api/admin/users/:id
+
+Bloquea o desbloquea la cuenta de un usuario.
+
+Al **desbloquear**, el campo `failed_attempts` también se resetea a 0.
+
+#### Parámetro de ruta
+
+| Parámetro | Tipo | Descripción |
+| --- | --- | --- |
+| `id` | UUID | ID del usuario a modificar |
+
+#### Request body
+
+```json
+{
+  "is_blocked": true
+}
+```
+
+| Campo | Tipo | Descripción |
+| --- | --- | --- |
+| `is_blocked` | boolean | `true` para bloquear, `false` para desbloquear |
+
+#### Respuesta exitosa — 200 OK
+
+```json
+{ "success": true }
+```
+
+#### Errores posibles
+
+| Código HTTP | `error` | Causa |
+| --- | --- | --- |
+| `400` | `is_blocked_required` | El campo `is_blocked` no está presente o no es booleano |
+| `403` | `forbidden` | El token no tiene rol `admin` |
+| `500` | `update_failed` | Error interno al actualizar el usuario |
 
 ---
 
@@ -434,11 +562,10 @@ GET /api/logs?user_id=1a32ad5d-...
 | Condición | Comportamiento |
 | --- | --- |
 | Contraseña incorrecta | Se incrementa `failed_attempts` en 1 |
-| `failed_attempts >= 5` | La cuenta queda bloqueada (`is_blocked = true`) |
+| `failed_attempts >= 3` | La cuenta queda bloqueada (`is_blocked = true`) |
 | Login exitoso | `failed_attempts` se resetea a 0 |
 | Cuenta bloqueada | Cualquier intento de login devuelve `403 account_blocked` |
-
-El desbloqueo de una cuenta bloqueada debe realizarse directamente en la base de datos o a través de un panel de administración (no existe endpoint público para ello).
+| Admin desbloquea | `is_blocked = false` y `failed_attempts = 0` vía `PATCH /api/admin/users/:id` |
 
 ### Aislamiento de datos
 
@@ -481,7 +608,7 @@ La función `transfer_funds` en PostgreSQL bloquea ambas cuentas con `SELECT FOR
 | `id` | uuid | PK |
 | `sender_account_id` | uuid | FK → accounts.id |
 | `receiver_account_id` | uuid | FK → accounts.id |
-| `amount` | numeric | Monto transferido |
+| `amount` | numeric | Monto transferido — debe ser mayor a 0 |
 | `status` | varchar | `completed` (único valor posible actualmente) |
 | `created_at` | timestamp | Fecha de la transacción |
 
