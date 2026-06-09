@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useAuth } from '../hooks/useAuth';
 import { getAccounts, type Account } from '../services/accounts';
 import BottomTabs from '../components/BottomTabs';
@@ -29,7 +30,7 @@ function formatRef(accountNumber: string): string {
 }
 
 export default function AccountScreen() {
-  const { user, token } = useAuth();
+  const { user, token, logout } = useAuth();
   const [account, setAccount] = useState<Account | null>(null);
   const [loading, setLoading] = useState(true);
   const [revealed, setRevealed] = useState(false);
@@ -175,6 +176,16 @@ export default function AccountScreen() {
           <Text style={styles.secondaryBtnText}>Descargar Estado de Cuenta</Text>
         </TouchableOpacity>
 
+        {/* Logout */}
+        <TouchableOpacity
+          style={styles.logoutBtn}
+          onPress={async () => { await logout(); router.replace('/login'); }}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="log-out-outline" size={18} color="#BA1A1A" />
+          <Text style={styles.logoutBtnText}>Cerrar sesión</Text>
+        </TouchableOpacity>
+
         <View style={{ height: 16 }} />
       </ScrollView>
 
@@ -317,4 +328,17 @@ const styles = StyleSheet.create({
     borderColor: PRIMARY,
   },
   secondaryBtnText: { color: PRIMARY, fontSize: 15, fontWeight: '700' },
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#FFF0F0',
+    borderRadius: 50,
+    height: 52,
+    marginBottom: 10,
+    borderWidth: 1.5,
+    borderColor: '#FFCDD2',
+  },
+  logoutBtnText: { color: '#BA1A1A', fontSize: 15, fontWeight: '700' },
 });

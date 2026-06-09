@@ -2,12 +2,13 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-export type AdminTab = 'panel' | 'users' | 'logs';
+export type AdminTab = 'panel' | 'users' | 'logs' | 'profile';
 
 const TABS: { id: AdminTab; label: string; icon: string; activeIcon: string; route: string }[] = [
   { id: 'panel', label: 'Panel', icon: 'stats-chart-outline', activeIcon: 'stats-chart', route: '/admin' },
   { id: 'users', label: 'Usuarios', icon: 'people-outline', activeIcon: 'people', route: '/admin/users' },
   { id: 'logs', label: 'Registros', icon: 'list-outline', activeIcon: 'list', route: '/admin/logs' },
+  { id: 'profile', label: 'Mi Perfil', icon: 'person-outline', activeIcon: 'person', route: '/admin/profile' },
 ];
 
 const PRIMARY = '#1A237E';

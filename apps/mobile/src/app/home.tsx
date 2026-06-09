@@ -32,7 +32,7 @@ const TX_BG = ['#E8EAF6', '#E8F5E9', '#FFF8E1', '#F3E5F5', '#FBE9E7'];
 const TX_COLOR = [PRIMARY, '#2E7D32', '#F57F17', '#6A1B9A', '#BF360C'];
 
 export default function HomeScreen() {
-  const { user, token, logout } = useAuth();
+  const { user, token } = useAuth();
   const [account, setAccount] = useState<Account | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,12 +91,6 @@ export default function HomeScreen() {
               <Text style={styles.greeting}>Hola, {user?.username} 👋</Text>
             </View>
           </View>
-          <TouchableOpacity
-            style={styles.headerBtn}
-            onPress={async () => { await logout(); router.replace('/login'); }}
-          >
-            <Ionicons name="log-out-outline" size={20} color="#454652" />
-          </TouchableOpacity>
         </View>
 
         {/* Balance card */}
@@ -190,20 +184,6 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* Financial tip */}
-        <View style={styles.tipCard}>
-          <View style={styles.tipHeader}>
-            <Ionicons name="bulb-outline" size={18} color="#F57F17" />
-            <Text style={styles.tipTitle}>Consejo Financiero</Text>
-          </View>
-          <Text style={styles.tipText}>
-            Mantén al menos 3 meses de gastos como fondo de emergencia para mayor tranquilidad financiera.
-          </Text>
-          <View style={styles.tipBtn}>
-            <Text style={styles.tipBtnText}>Banco CCB te cuida 💙</Text>
-          </View>
-        </View>
-
         <View style={{ height: 16 }} />
       </ScrollView>
 
@@ -233,11 +213,6 @@ const styles = StyleSheet.create({
   avatarText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   bankLabel: { fontSize: 15, fontWeight: '800', color: '#1A1C1D' },
   greeting: { fontSize: 12, color: '#767683', marginTop: 1 },
-  headerBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2,
-  },
 
   balanceCard: {
     backgroundColor: PRIMARY,
@@ -283,16 +258,4 @@ const styles = StyleSheet.create({
   statusText: { fontSize: 10, fontWeight: '700', color: '#2E7D32' },
   emptyText: { textAlign: 'center', color: '#9E9E9E', paddingVertical: 20, fontSize: 14 },
 
-  tipCard: {
-    backgroundColor: '#FFFDE7', borderRadius: 16, padding: 16, marginBottom: 12,
-    borderLeftWidth: 4, borderLeftColor: '#FFC107',
-  },
-  tipHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  tipTitle: { fontSize: 14, fontWeight: '700', color: '#F57F17' },
-  tipText: { fontSize: 13, color: '#5D4037', lineHeight: 20, marginBottom: 12 },
-  tipBtn: {
-    backgroundColor: '#FFC107', borderRadius: 99,
-    paddingHorizontal: 16, paddingVertical: 8, alignSelf: 'flex-start',
-  },
-  tipBtnText: { fontSize: 13, fontWeight: '700', color: '#1A1C1D' },
 });
