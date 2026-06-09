@@ -74,7 +74,10 @@ export default function AccountScreen() {
       >
         {/* Header — immediate */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Banco CCB</Text>
+          <View>
+            <Text style={styles.headerTitle}>Banco CCB</Text>
+            <Text style={styles.headerSub}>Mi Cuenta</Text>
+          </View>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
               {(user?.username?.[0] ?? 'U').toUpperCase()}
@@ -206,11 +209,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12, marginBottom: 8,
   },
   headerTitle: { fontSize: 18, fontWeight: '800', color: '#1A1C1D' },
+  headerSub: { fontSize: 12, color: '#767683', marginTop: 2 },
   avatar: {
-    width: 36, height: 36, borderRadius: 18,
+    width: 40, height: 40, borderRadius: 20,
     backgroundColor: PRIMARY, justifyContent: 'center', alignItems: 'center',
   },
-  avatarText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  avatarText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 
   profileCard: {
     backgroundColor: PRIMARY, borderRadius: 20, padding: 28, alignItems: 'center', marginBottom: 12,

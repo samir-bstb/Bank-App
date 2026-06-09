@@ -71,16 +71,14 @@ export default function HomeScreen() {
       >
         {/* Header — user data available immediately from auth */}
         <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {(user?.username?.[0] ?? 'U').toUpperCase()}
-              </Text>
-            </View>
-            <View>
-              <Text style={styles.bankLabel}>Banco CCB</Text>
-              <Text style={styles.greeting}>Hola, {user?.username} 👋</Text>
-            </View>
+          <View>
+            <Text style={styles.bankLabel}>Banco CCB</Text>
+            <Text style={styles.greeting}>Hola, {user?.username}</Text>
+          </View>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>
+              {(user?.username?.[0] ?? 'U').toUpperCase()}
+            </Text>
           </View>
         </View>
 
@@ -198,14 +196,13 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginBottom: 8,
   },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatar: {
     width: 40, height: 40, borderRadius: 20,
     backgroundColor: PRIMARY, justifyContent: 'center', alignItems: 'center',
   },
   avatarText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  bankLabel: { fontSize: 15, fontWeight: '800', color: '#1A1C1D' },
-  greeting: { fontSize: 12, color: '#767683', marginTop: 1 },
+  bankLabel: { fontSize: 18, fontWeight: '800', color: '#1A1C1D' },
+  greeting: { fontSize: 12, color: '#767683', marginTop: 2 },
 
   balanceCard: {
     backgroundColor: PRIMARY,
