@@ -29,45 +29,6 @@ function formatRef(accountNumber: string): string {
   return 'CCB ' + parts.join(' ');
 }
 
-function AccountSkeleton() {
-  return (
-    <SafeAreaView style={styles.root} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Skeleton width={100} height={18} radius={8} />
-          <Skeleton width={36} height={36} radius={18} />
-        </View>
-
-        {/* Profile card */}
-        <Skeleton width="100%" height={200} radius={20} style={{ marginBottom: 12 }} />
-
-        {/* Details card */}
-        <View style={styles.card}>
-          <Skeleton width={160} height={11} radius={5} style={{ marginBottom: 16 }} />
-          {[1, 2, 3, 4, 5].map(i => (
-            <View key={i} style={[styles.detailRow, i < 5 && { borderBottomWidth: 1, borderBottomColor: '#F5F5F5' }]}>
-              <Skeleton width={90} height={13} radius={6} />
-              <Skeleton width={130} height={13} radius={6} />
-            </View>
-          ))}
-        </View>
-
-        {/* Security note */}
-        <Skeleton width="100%" height={56} radius={12} style={{ marginBottom: 12 }} />
-
-        {/* Buttons */}
-        <Skeleton width="100%" height={52} radius={26} style={{ marginBottom: 10 }} />
-        <Skeleton width="100%" height={52} radius={26} style={{ marginBottom: 10 }} />
-        <Skeleton width="100%" height={52} radius={26} style={{ marginBottom: 10 }} />
-
-        <View style={{ height: 16 }} />
-      </ScrollView>
-      <BottomTabs active="account" />
-    </SafeAreaView>
-  );
-}
-
 export default function AccountScreen() {
   const { user, token, logout } = useAuth();
   const [account, setAccount] = useState<Account | null>(null);
@@ -77,9 +38,7 @@ export default function AccountScreen() {
   useEffect(() => {
     if (token) {
       getAccounts(token)
-        .then(accounts => {
-          if (accounts.length > 0) setAccount(accounts[0]);
-        })
+        .then(accounts => { if (accounts.length > 0) setAccount(accounts[0]); })
         .catch(console.error)
         .finally(() => setLoading(false));
     }
@@ -102,14 +61,9 @@ export default function AccountScreen() {
 
   function handleDownload() {
     const msg = 'Estado de cuenta disponible próximamente.';
-    if (Platform.OS === 'web') {
-      window.alert(msg);
-    } else {
-      Alert.alert('Próximamente', msg);
-    }
+    if (Platform.OS === 'web') window.alert(msg);
+    else Alert.alert('Próximamente', msg);
   }
-
-  if (loading) return <AccountSkeleton />;
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -118,7 +72,7 @@ export default function AccountScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
+        {/* Header — immediate */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Banco CCB</Text>
           <View style={styles.avatar}>
@@ -128,7 +82,7 @@ export default function AccountScreen() {
           </View>
         </View>
 
-        {/* Profile card */}
+        {/* Profile card — username from auth, immediate */}
         <View style={styles.profileCard}>
           <View style={styles.profileAvatar}>
             <Text style={styles.profileAvatarText}>
@@ -143,54 +97,70 @@ export default function AccountScreen() {
           <Text style={styles.profileRole}>Cuenta de Ahorros · Banco CCB</Text>
         </View>
 
-        {/* Account details */}
-        {account && (
-          <View style={styles.card}>
-            <Text style={styles.sectionLabel}>DETALLES DE LA CUENTA</Text>
+        {/* Account details — card renders immediately, cells skeleton while loading */}
+        <View style={styles.card}>
+          <Text style={styles.sectionLabel}>DETALLES DE LA CUENTA</Text>
 
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Titular</Text>
-              <Text style={styles.detailValue}>{user?.username}</Text>
-            </View>
+          {/* Titular — from auth, immediate */}
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Titular</Text>
+            <Text style={styles.detailValue}>{user?.username}</Text>
+          </View>
 
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>N.º de cuenta</Text>
+          {/* Account number — needs API */}
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>N.º de cuenta</Text>
+            {loading ? (
+              <Skeleton width={160} height={14} radius={6} />
+            ) : (
               <View style={styles.detailValueRow}>
                 <Text style={styles.detailValue}>
-                  {revealed ? account.account_number : maskNumber(account.account_number)}
+                  {account ? (revealed ? account.account_number : maskNumber(account.account_number)) : '—'}
                 </Text>
-                <TouchableOpacity onPress={() => setRevealed(r => !r)}>
-                  <Ionicons
-                    name={revealed ? 'eye-off-outline' : 'eye-outline'}
-                    size={18}
-                    color="#767683"
-                  />
-                </TouchableOpacity>
+                {account && (
+                  <TouchableOpacity onPress={() => setRevealed(r => !r)}>
+                    <Ionicons
+                      name={revealed ? 'eye-off-outline' : 'eye-outline'}
+                      size={18}
+                      color="#767683"
+                    />
+                  </TouchableOpacity>
+                )}
               </View>
-            </View>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Referencia CCB</Text>
-              <Text style={[styles.detailValue, { fontSize: 12 }]}>
-                {formatRef(account.account_number)}
-              </Text>
-            </View>
-
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Saldo disponible</Text>
-              <Text style={[styles.detailValue, styles.balanceValue]}>
-                ${account.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              </Text>
-            </View>
-
-            <View style={[styles.detailRow, styles.lastRow]}>
-              <Text style={styles.detailLabel}>Tipo de cuenta</Text>
-              <Text style={styles.detailValue}>Cuenta de Ahorros</Text>
-            </View>
+            )}
           </View>
-        )}
 
-        {/* Security note */}
+          {/* Reference */}
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Referencia CCB</Text>
+            {loading ? (
+              <Skeleton width={140} height={13} radius={6} />
+            ) : (
+              <Text style={[styles.detailValue, { fontSize: 12 }]}>
+                {account ? formatRef(account.account_number) : '—'}
+              </Text>
+            )}
+          </View>
+
+          {/* Balance */}
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Saldo disponible</Text>
+            {loading ? (
+              <Skeleton width={90} height={16} radius={6} />
+            ) : (
+              <Text style={[styles.detailValue, styles.balanceValue]}>
+                ${account?.balance.toLocaleString('en-US', { minimumFractionDigits: 2 }) ?? '0.00'}
+              </Text>
+            )}
+          </View>
+
+          <View style={[styles.detailRow, styles.lastRow]}>
+            <Text style={styles.detailLabel}>Tipo de cuenta</Text>
+            <Text style={styles.detailValue}>Cuenta de Ahorros</Text>
+          </View>
+        </View>
+
+        {/* Security note — immediate */}
         <View style={styles.securityNote}>
           <Ionicons name="shield-checkmark-outline" size={16} color="#1565C0" />
           <Text style={styles.securityText}>
@@ -198,7 +168,7 @@ export default function AccountScreen() {
           </Text>
         </View>
 
-        {/* Actions */}
+        {/* Action buttons — always visible */}
         <TouchableOpacity style={styles.primaryBtn} onPress={handleShare} activeOpacity={0.8}>
           <Ionicons name="share-outline" size={18} color="#fff" />
           <Text style={styles.primaryBtnText}>Compartir Datos de Cuenta</Text>
@@ -209,7 +179,6 @@ export default function AccountScreen() {
           <Text style={styles.secondaryBtnText}>Descargar Estado de Cuenta</Text>
         </TouchableOpacity>
 
-        {/* Logout */}
         <TouchableOpacity
           style={styles.logoutBtn}
           onPress={async () => { await logout(); router.replace('/login'); }}
@@ -233,11 +202,8 @@ const styles = StyleSheet.create({
   scrollContent: { padding: 16, paddingTop: 8 },
 
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    marginBottom: 8,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingVertical: 12, marginBottom: 8,
   },
   headerTitle: { fontSize: 18, fontWeight: '800', color: '#1A1C1D' },
   avatar: {
@@ -247,16 +213,8 @@ const styles = StyleSheet.create({
   avatarText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 
   profileCard: {
-    backgroundColor: PRIMARY,
-    borderRadius: 20,
-    padding: 28,
-    alignItems: 'center',
-    marginBottom: 12,
-    shadowColor: PRIMARY,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 6,
+    backgroundColor: PRIMARY, borderRadius: 20, padding: 28, alignItems: 'center', marginBottom: 12,
+    shadowColor: PRIMARY, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 16, elevation: 6,
   },
   profileAvatar: {
     width: 80, height: 80, borderRadius: 40,

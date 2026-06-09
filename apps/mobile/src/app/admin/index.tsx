@@ -14,75 +14,6 @@ import { adminGetUsers, adminGetLogs, type AdminUser, type AdminLog } from '../.
 import AdminBottomTabs from '../../components/AdminBottomTabs';
 import Skeleton from '../../components/Skeleton';
 
-function AdminSkeleton() {
-  return (
-    <SafeAreaView style={styles.root} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={[styles.header, { marginBottom: 8 }]}>
-          <View style={{ gap: 6 }}>
-            <Skeleton width={110} height={18} radius={8} />
-            <Skeleton width={160} height={12} radius={6} />
-          </View>
-          <Skeleton width={38} height={38} radius={19} />
-        </View>
-
-        {/* Status card */}
-        <Skeleton width="100%" height={62} radius={16} style={{ marginBottom: 12 }} />
-
-        {/* Stats grid */}
-        <View style={styles.statsGrid}>
-          {[1, 2, 3, 4].map(i => (
-            <View key={i} style={[styles.statCard, { backgroundColor: '#F5F5F7' }]}>
-              <Skeleton width={28} height={28} radius={14} />
-              <Skeleton width={40} height={28} radius={8} style={{ marginTop: 4 }} />
-              <Skeleton width={70} height={12} radius={6} style={{ marginTop: 4 }} />
-            </View>
-          ))}
-        </View>
-
-        {/* Recent users card */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Skeleton width={140} height={15} radius={7} />
-            <Skeleton width={70} height={13} radius={6} />
-          </View>
-          {[1, 2, 3, 4].map(i => (
-            <View key={i} style={[styles.userRow, i < 4 && styles.rowBorder]}>
-              <Skeleton width={36} height={36} radius={18} />
-              <View style={{ flex: 1, gap: 7 }}>
-                <Skeleton width="50%" height={13} radius={6} />
-                <Skeleton width="28%" height={11} radius={5} />
-              </View>
-              <Skeleton width={60} height={22} radius={99} />
-            </View>
-          ))}
-        </View>
-
-        {/* Logs card */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Skeleton width={175} height={15} radius={7} />
-            <Skeleton width={70} height={13} radius={6} />
-          </View>
-          {[1, 2, 3, 4, 5].map(i => (
-            <View key={i} style={[styles.logRow, i < 5 && styles.rowBorder]}>
-              <View style={styles.logTop}>
-                <Skeleton width={80} height={20} radius={99} />
-                <Skeleton width={40} height={11} radius={5} />
-              </View>
-              <Skeleton width="70%" height={12} radius={6} style={{ marginTop: 2 }} />
-            </View>
-          ))}
-        </View>
-
-        <View style={{ height: 16 }} />
-      </ScrollView>
-      <AdminBottomTabs active="panel" />
-    </SafeAreaView>
-  );
-}
-
 const PRIMARY = '#1A237E';
 const BACKGROUND = '#F9F9FB';
 
@@ -93,6 +24,13 @@ const EVENT_COLORS: Record<string, { bg: string; color: string }> = {
   transfer: { bg: '#E3F2FD', color: '#1565C0' },
 };
 
+const STAT_CARDS = [
+  { bg: '#E8EAF6', icon: 'people', color: PRIMARY, label: 'Total Usuarios' },
+  { bg: '#E8F5E9', icon: 'person-circle', color: '#2E7D32', label: 'Clientes' },
+  { bg: '#FFEBEE', icon: 'ban', color: '#C62828', label: 'Bloqueados' },
+  { bg: '#FFF8E1', icon: 'shield', color: '#F57F17', label: 'Admins' },
+] as const;
+
 export default function AdminDashboard() {
   const { user, token, logout } = useAuth();
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -102,20 +40,14 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (token) {
       Promise.all([adminGetUsers(token), adminGetLogs(token)])
-        .then(([u, l]) => {
-          setUsers(u);
-          setLogs(l.slice(0, 8));
-        })
+        .then(([u, l]) => { setUsers(u); setLogs(l.slice(0, 8)); })
         .catch(console.error)
         .finally(() => setLoading(false));
     }
   }, [token]);
 
-  const blockedCount = users.filter(u => u.is_blocked).length;
-  const clientCount = users.filter(u => u.role === 'client').length;
-  const adminCount = users.filter(u => u.role === 'admin').length;
-
-  if (loading) return <AdminSkeleton />;
+  const counts = [users.length, users.filter(u => u.role === 'client').length,
+    users.filter(u => u.is_blocked).length, users.filter(u => u.role === 'admin').length];
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -124,7 +56,7 @@ export default function AdminDashboard() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
+        {/* Header — immediate (user from auth) */}
         <View style={styles.header}>
           <View>
             <Text style={styles.bankName}>Banco CCB</Text>
@@ -140,7 +72,7 @@ export default function AdminDashboard() {
           </TouchableOpacity>
         </View>
 
-        {/* System status */}
+        {/* Status card — static, always immediate */}
         <View style={styles.statusCard}>
           <View style={styles.statusLeft}>
             <View style={styles.statusDot} />
@@ -149,40 +81,28 @@ export default function AdminDashboard() {
               <Text style={styles.statusSub}>Todos los servicios operativos</Text>
             </View>
           </View>
-          <TouchableOpacity
-            style={styles.logsChip}
-            onPress={() => router.push('/admin/logs')}
-          >
+          <TouchableOpacity style={styles.logsChip} onPress={() => router.push('/admin/logs')}>
             <Ionicons name="list-outline" size={14} color="#fff" />
             <Text style={styles.logsChipText}>Logs</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Stats grid */}
+        {/* Stats grid — icons/labels immediate, numbers skeleton while loading */}
         <View style={styles.statsGrid}>
-          <View style={[styles.statCard, { backgroundColor: '#E8EAF6' }]}>
-            <Ionicons name="people" size={24} color={PRIMARY} />
-            <Text style={styles.statNum}>{users.length}</Text>
-            <Text style={styles.statLabel}>Total Usuarios</Text>
-          </View>
-          <View style={[styles.statCard, { backgroundColor: '#E8F5E9' }]}>
-            <Ionicons name="person-circle" size={24} color="#2E7D32" />
-            <Text style={[styles.statNum, { color: '#2E7D32' }]}>{clientCount}</Text>
-            <Text style={styles.statLabel}>Clientes</Text>
-          </View>
-          <View style={[styles.statCard, { backgroundColor: '#FFEBEE' }]}>
-            <Ionicons name="ban" size={24} color="#C62828" />
-            <Text style={[styles.statNum, { color: '#C62828' }]}>{blockedCount}</Text>
-            <Text style={styles.statLabel}>Bloqueados</Text>
-          </View>
-          <View style={[styles.statCard, { backgroundColor: '#FFF8E1' }]}>
-            <Ionicons name="shield" size={24} color="#F57F17" />
-            <Text style={[styles.statNum, { color: '#F57F17' }]}>{adminCount}</Text>
-            <Text style={styles.statLabel}>Admins</Text>
-          </View>
+          {STAT_CARDS.map((s, i) => (
+            <View key={s.label} style={[styles.statCard, { backgroundColor: s.bg }]}>
+              <Ionicons name={s.icon as never} size={24} color={s.color} />
+              {loading ? (
+                <Skeleton width={36} height={26} radius={7} style={{ marginTop: 6 }} />
+              ) : (
+                <Text style={[styles.statNum, { color: s.color }]}>{counts[i]}</Text>
+              )}
+              <Text style={styles.statLabel}>{s.label}</Text>
+            </View>
+          ))}
         </View>
 
-        {/* Recent users */}
+        {/* Recent users — card header immediate, rows skeleton while loading */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Usuarios Recientes</Text>
@@ -190,32 +110,45 @@ export default function AdminDashboard() {
               <Text style={styles.viewAll}>Ver todos →</Text>
             </TouchableOpacity>
           </View>
-          {users.slice(0, 4).map((u, i) => (
-            <TouchableOpacity
-              key={u.id}
-              style={[styles.userRow, i < 3 && styles.rowBorder]}
-              onPress={() => router.push(`/admin/user/${u.id}` as never)}
-            >
-              <View style={styles.userAvatar}>
-                <Text style={styles.userAvatarText}>{u.username[0].toUpperCase()}</Text>
+
+          {loading ? (
+            [1, 2, 3, 4].map(i => (
+              <View key={i} style={[styles.userRow, i < 4 && styles.rowBorder]}>
+                <Skeleton width={36} height={36} radius={18} />
+                <View style={{ flex: 1, gap: 7 }}>
+                  <Skeleton width="48%" height={13} radius={6} />
+                  <Skeleton width="26%" height={11} radius={5} />
+                </View>
+                <Skeleton width={62} height={22} radius={99} />
               </View>
-              <View style={styles.userInfo}>
-                <Text style={styles.userName}>{u.username}</Text>
-                <Text style={styles.userRole}>{u.role}</Text>
-              </View>
-              <View style={[
-                styles.statusPill,
-                { backgroundColor: u.is_blocked ? '#FFEBEE' : '#E8F5E9' },
-              ]}>
-                <Text style={[styles.statusPillText, { color: u.is_blocked ? '#C62828' : '#2E7D32' }]}>
-                  {u.is_blocked ? 'Bloqueado' : 'Activo'}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
+            ))
+          ) : users.length === 0 ? (
+            <Text style={styles.emptyText}>Sin usuarios</Text>
+          ) : (
+            users.slice(0, 4).map((u, i) => (
+              <TouchableOpacity
+                key={u.id}
+                style={[styles.userRow, i < 3 && styles.rowBorder]}
+                onPress={() => router.push(`/admin/user/${u.id}` as never)}
+              >
+                <View style={styles.userAvatar}>
+                  <Text style={styles.userAvatarText}>{u.username[0].toUpperCase()}</Text>
+                </View>
+                <View style={styles.userInfo}>
+                  <Text style={styles.userName}>{u.username}</Text>
+                  <Text style={styles.userRole}>{u.role}</Text>
+                </View>
+                <View style={[styles.statusPill, { backgroundColor: u.is_blocked ? '#FFEBEE' : '#E8F5E9' }]}>
+                  <Text style={[styles.statusPillText, { color: u.is_blocked ? '#C62828' : '#2E7D32' }]}>
+                    {u.is_blocked ? 'Bloqueado' : 'Activo'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
         </View>
 
-        {/* Security logs */}
+        {/* Security logs — card header immediate, rows skeleton while loading */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Registros de Seguridad</Text>
@@ -223,7 +156,18 @@ export default function AdminDashboard() {
               <Text style={styles.viewAll}>Ver todos →</Text>
             </TouchableOpacity>
           </View>
-          {logs.length === 0 ? (
+
+          {loading ? (
+            [1, 2, 3, 4, 5].map(i => (
+              <View key={i} style={[styles.logRow, i < 5 && styles.rowBorder]}>
+                <View style={styles.logTop}>
+                  <Skeleton width={82} height={20} radius={99} />
+                  <Skeleton width={38} height={11} radius={5} />
+                </View>
+                <Skeleton width="65%" height={12} radius={6} style={{ marginTop: 4 }} />
+              </View>
+            ))
+          ) : logs.length === 0 ? (
             <Text style={styles.emptyText}>Sin registros aún</Text>
           ) : (
             logs.slice(0, 5).map((log, i) => {

@@ -31,7 +31,8 @@ const ERROR_MAP: Record<string, string> = {
 };
 
 function relativeDate(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
+  const normalized = /Z|[+-]\d{2}:\d{2}$/.test(dateStr) ? dateStr : dateStr + 'Z';
+  const diff = Date.now() - new Date(normalized).getTime();
   const days = Math.floor(diff / 86400000);
   if (days === 0) return 'Hoy';
   if (days === 1) return 'Ayer';
@@ -46,49 +47,11 @@ function showMessage(title: string, msg: string) {
   }
 }
 
-function TransferSkeleton() {
-  return (
-    <SafeAreaView style={styles.root} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={[styles.header, { marginBottom: 8 }]}>
-          <Skeleton width={100} height={18} radius={8} />
-          <Skeleton width={36} height={36} radius={18} />
-        </View>
-
-        {/* From card */}
-        <Skeleton width="100%" height={90} radius={16} style={{ marginBottom: 12 }} />
-
-        {/* New transfer button */}
-        <Skeleton width="100%" height={50} radius={25} style={{ marginBottom: 12 }} />
-
-        {/* Recent transfers card */}
-        <View style={styles.card}>
-          <Skeleton width={190} height={15} radius={7} style={{ marginBottom: 20 }} />
-          {[1, 2, 3].map(i => (
-            <View key={i} style={[styles.recentRow, i < 3 && styles.rowBorder]}>
-              <Skeleton width={40} height={40} radius={20} />
-              <View style={{ flex: 1, gap: 8 }}>
-                <Skeleton width="55%" height={13} radius={6} />
-                <Skeleton width="30%" height={11} radius={5} />
-              </View>
-              <Skeleton width={55} height={14} radius={6} />
-            </View>
-          ))}
-        </View>
-
-        <View style={{ height: 16 }} />
-      </ScrollView>
-      <BottomTabs active="transfer" />
-    </SafeAreaView>
-  );
-}
-
 export default function TransferScreen() {
   const { token, user } = useAuth();
   const [account, setAccount] = useState<Account | null>(null);
   const [recentTxs, setRecentTxs] = useState<Transaction[]>([]);
-  const [loadingData, setLoadingData] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [receiver, setReceiver] = useState('');
   const [amount, setAmount] = useState('');
@@ -104,14 +67,12 @@ export default function TransferScreen() {
       if (accounts.length > 0) {
         setAccount(accounts[0]);
         const txs = await getTransactions(token!, accounts[0].id);
-        setRecentTxs(
-          txs.filter(tx => tx.sender_account_id === accounts[0].id).slice(0, 6)
-        );
+        setRecentTxs(txs.filter(tx => tx.sender_account_id === accounts[0].id).slice(0, 6));
       }
     } catch (err) {
       console.error(err);
     } finally {
-      setLoadingData(false);
+      setLoading(false);
     }
   }
 
@@ -142,8 +103,6 @@ export default function TransferScreen() {
     }
   }
 
-  if (loadingData) return <TransferSkeleton />;
-
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <ScrollView
@@ -162,20 +121,27 @@ export default function TransferScreen() {
           </View>
         </View>
 
-        {/* From account chip */}
-        {account && (
-          <View style={styles.fromCard}>
-            <Text style={styles.fromLabel}>CUENTA ORIGEN</Text>
-            <Text style={styles.fromNumber}>
-              •••• •••• •••• {account.account_number.slice(-4)}
-            </Text>
-            <Text style={styles.fromBalance}>
-              Saldo: ${account.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-            </Text>
-          </View>
-        )}
+        {/* From account — card renders immediately, values skeleton while loading */}
+        <View style={styles.fromCard}>
+          <Text style={styles.fromLabel}>CUENTA ORIGEN</Text>
+          {loading ? (
+            <>
+              <Skeleton width={180} height={16} radius={7} light style={{ marginBottom: 8 }} />
+              <Skeleton width={130} height={13} radius={6} light />
+            </>
+          ) : (
+            <>
+              <Text style={styles.fromNumber}>
+                •••• •••• •••• {account?.account_number.slice(-4)}
+              </Text>
+              <Text style={styles.fromBalance}>
+                Saldo: ${account?.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              </Text>
+            </>
+          )}
+        </View>
 
-        {/* New transfer button */}
+        {/* New transfer button — always visible */}
         <TouchableOpacity
           style={styles.newBtn}
           onPress={() => setShowForm(f => !f)}
@@ -232,20 +198,29 @@ export default function TransferScreen() {
           </View>
         )}
 
-        {/* Recent transfers */}
+        {/* Recent transfers — card always shown, rows skeleton while loading */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Transferencias Enviadas</Text>
-          {recentTxs.length === 0 ? (
+
+          {loading ? (
+            [1, 2, 3].map(i => (
+              <View key={i} style={[styles.recentRow, i < 3 && styles.rowBorder]}>
+                <Skeleton width={40} height={40} radius={20} />
+                <View style={{ flex: 1, gap: 8 }}>
+                  <Skeleton width="55%" height={13} radius={6} />
+                  <Skeleton width="28%" height={11} radius={5} />
+                </View>
+                <Skeleton width={58} height={14} radius={6} />
+              </View>
+            ))
+          ) : recentTxs.length === 0 ? (
             <Text style={styles.emptyText}>Sin transferencias enviadas aún</Text>
           ) : (
             recentTxs.map((tx, i) => (
               <TouchableOpacity
                 key={tx.id}
                 style={[styles.recentRow, i < recentTxs.length - 1 && styles.rowBorder]}
-                onPress={() => {
-                  setReceiver(tx.receiver_account_id);
-                  setShowForm(true);
-                }}
+                onPress={() => { setReceiver(tx.receiver_account_id); setShowForm(true); }}
                 activeOpacity={0.7}
               >
                 <View style={styles.recentIcon}>
@@ -289,7 +264,7 @@ const styles = StyleSheet.create({
   avatarText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 
   fromCard: { backgroundColor: PRIMARY, borderRadius: 16, padding: 18, marginBottom: 12 },
-  fromLabel: { fontSize: 10, color: 'rgba(255,255,255,0.6)', fontWeight: '700', letterSpacing: 1.2, marginBottom: 6 },
+  fromLabel: { fontSize: 10, color: 'rgba(255,255,255,0.6)', fontWeight: '700', letterSpacing: 1.2, marginBottom: 10 },
   fromNumber: { fontSize: 16, fontWeight: '700', color: '#fff', marginBottom: 4 },
   fromBalance: { fontSize: 13, color: 'rgba(255,255,255,0.7)' },
 

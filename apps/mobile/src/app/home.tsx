@@ -21,7 +21,8 @@ const BACKGROUND = '#F9F9FB';
 const SUCCESS = '#4CAF50';
 
 function relativeDate(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
+  const normalized = /Z|[+-]\d{2}:\d{2}$/.test(dateStr) ? dateStr : dateStr + 'Z';
+  const diff = Date.now() - new Date(normalized).getTime();
   const days = Math.floor(diff / 86400000);
   if (days === 0) return 'Hoy';
   if (days === 1) return 'Ayer';
@@ -30,56 +31,6 @@ function relativeDate(dateStr: string): string {
 
 const TX_BG = ['#E8EAF6', '#E8F5E9', '#FFF8E1', '#F3E5F5', '#FBE9E7'];
 const TX_COLOR = [PRIMARY, '#2E7D32', '#F57F17', '#6A1B9A', '#BF360C'];
-
-function HomeSkeleton() {
-  return (
-    <SafeAreaView style={styles.root} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Skeleton width={40} height={40} radius={20} />
-            <View style={{ gap: 6 }}>
-              <Skeleton width={90} height={14} radius={7} />
-              <Skeleton width={120} height={12} radius={6} />
-            </View>
-          </View>
-        </View>
-
-        {/* Balance card */}
-        <Skeleton width="100%" height={138} radius={20} style={{ marginBottom: 12 }} />
-
-        {/* Quick actions card */}
-        <View style={styles.card}>
-          <Skeleton width={130} height={15} radius={7} style={{ marginBottom: 20 }} />
-          <Skeleton width={52} height={52} radius={26} style={{ alignSelf: 'center' }} />
-          <Skeleton width={48} height={11} radius={5} style={{ alignSelf: 'center', marginTop: 8 }} />
-        </View>
-
-        {/* Transactions card */}
-        <View style={styles.card}>
-          <Skeleton width={170} height={15} radius={7} style={{ marginBottom: 20 }} />
-          {[1, 2, 3].map(i => (
-            <View key={i} style={[styles.txRow, i < 3 && styles.txBorder]}>
-              <Skeleton width={42} height={42} radius={21} />
-              <View style={{ flex: 1, gap: 8 }}>
-                <Skeleton width="60%" height={13} radius={6} />
-                <Skeleton width="35%" height={11} radius={5} />
-              </View>
-              <View style={{ alignItems: 'flex-end', gap: 6 }}>
-                <Skeleton width={60} height={14} radius={6} />
-                <Skeleton width={50} height={18} radius={99} />
-              </View>
-            </View>
-          ))}
-        </View>
-
-        <View style={{ height: 16 }} />
-      </ScrollView>
-      <BottomTabs active="home" />
-    </SafeAreaView>
-  );
-}
 
 export default function HomeScreen() {
   const { user, token } = useAuth();
@@ -110,10 +61,6 @@ export default function HomeScreen() {
     }
   }
 
-  if (loading) return <HomeSkeleton />;
-
-  const balance = account?.balance ?? 0;
-
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor={BACKGROUND} />
@@ -122,7 +69,7 @@ export default function HomeScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
+        {/* Header — user data available immediately from auth */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <View style={styles.avatar}>
@@ -137,24 +84,33 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Balance card */}
+        {/* Balance card — structure immediate, data fields skeleton */}
         <View style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>SALDO TOTAL</Text>
-          <Text style={styles.balanceAmount}>
-            ${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-          </Text>
+
+          {loading ? (
+            <Skeleton width={200} height={38} radius={8} light style={{ marginBottom: 4 }} />
+          ) : (
+            <Text style={styles.balanceAmount}>
+              ${(account?.balance ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            </Text>
+          )}
+
           <Text style={styles.balanceSub}>Cuenta de Ahorros</Text>
-          {account && (
+
+          {loading ? (
+            <Skeleton width={120} height={28} radius={99} light />
+          ) : account ? (
             <View style={styles.accountChip}>
               <Ionicons name="card-outline" size={12} color="rgba(255,255,255,0.7)" />
               <Text style={styles.accountChipText}>
                 •••• {account.account_number.slice(-4)}
               </Text>
             </View>
-          )}
+          ) : null}
         </View>
 
-        {/* Quick actions — only functional buttons */}
+        {/* Quick actions — no data needed, renders immediately */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Acciones Rápidas</Text>
           <View style={styles.actionsRow}>
@@ -167,10 +123,25 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Transactions */}
+        {/* Transactions — card shows immediately, rows skeleton while loading */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Movimientos Recientes</Text>
-          {transactions.length === 0 ? (
+
+          {loading ? (
+            [1, 2, 3].map(i => (
+              <View key={i} style={[styles.txRow, i < 3 && styles.txBorder]}>
+                <Skeleton width={42} height={42} radius={21} />
+                <View style={{ flex: 1, gap: 8 }}>
+                  <Skeleton width="58%" height={13} radius={6} />
+                  <Skeleton width="32%" height={11} radius={5} />
+                </View>
+                <View style={{ alignItems: 'flex-end', gap: 6 }}>
+                  <Skeleton width={62} height={14} radius={6} />
+                  <Skeleton width={50} height={18} radius={99} />
+                </View>
+              </View>
+            ))
+          ) : transactions.length === 0 ? (
             <Text style={styles.emptyText}>Sin movimientos aún</Text>
           ) : (
             transactions.map((tx, i) => {
