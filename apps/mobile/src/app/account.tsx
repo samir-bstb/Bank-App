@@ -5,7 +5,6 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  ActivityIndicator,
   Share,
   Alert,
   Platform,
@@ -16,6 +15,7 @@ import { router } from 'expo-router';
 import { useAuth } from '../hooks/useAuth';
 import { getAccounts, type Account } from '../services/accounts';
 import BottomTabs from '../components/BottomTabs';
+import Skeleton from '../components/Skeleton';
 
 const PRIMARY = '#1A237E';
 const BACKGROUND = '#F9F9FB';
@@ -27,6 +27,45 @@ function maskNumber(num: string): string {
 function formatRef(accountNumber: string): string {
   const parts = accountNumber.match(/.{1,4}/g) ?? [];
   return 'CCB ' + parts.join(' ');
+}
+
+function AccountSkeleton() {
+  return (
+    <SafeAreaView style={styles.root} edges={['top']}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Skeleton width={100} height={18} radius={8} />
+          <Skeleton width={36} height={36} radius={18} />
+        </View>
+
+        {/* Profile card */}
+        <Skeleton width="100%" height={200} radius={20} style={{ marginBottom: 12 }} />
+
+        {/* Details card */}
+        <View style={styles.card}>
+          <Skeleton width={160} height={11} radius={5} style={{ marginBottom: 16 }} />
+          {[1, 2, 3, 4, 5].map(i => (
+            <View key={i} style={[styles.detailRow, i < 5 && { borderBottomWidth: 1, borderBottomColor: '#F5F5F5' }]}>
+              <Skeleton width={90} height={13} radius={6} />
+              <Skeleton width={130} height={13} radius={6} />
+            </View>
+          ))}
+        </View>
+
+        {/* Security note */}
+        <Skeleton width="100%" height={56} radius={12} style={{ marginBottom: 12 }} />
+
+        {/* Buttons */}
+        <Skeleton width="100%" height={52} radius={26} style={{ marginBottom: 10 }} />
+        <Skeleton width="100%" height={52} radius={26} style={{ marginBottom: 10 }} />
+        <Skeleton width="100%" height={52} radius={26} style={{ marginBottom: 10 }} />
+
+        <View style={{ height: 16 }} />
+      </ScrollView>
+      <BottomTabs active="account" />
+    </SafeAreaView>
+  );
 }
 
 export default function AccountScreen() {
@@ -70,13 +109,7 @@ export default function AccountScreen() {
     }
   }
 
-  if (loading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={PRIMARY} />
-      </View>
-    );
-  }
+  if (loading) return <AccountSkeleton />;
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -196,7 +229,6 @@ export default function AccountScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: BACKGROUND },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: BACKGROUND },
   scroll: { flex: 1 },
   scrollContent: { padding: 16, paddingTop: 8 },
 
@@ -209,12 +241,8 @@ const styles = StyleSheet.create({
   },
   headerTitle: { fontSize: 18, fontWeight: '800', color: '#1A1C1D' },
   avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: PRIMARY,
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: PRIMARY, justifyContent: 'center', alignItems: 'center',
   },
   avatarText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 
@@ -231,56 +259,28 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   profileAvatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-    borderWidth: 3,
-    borderColor: 'rgba(255,255,255,0.35)',
+    width: 80, height: 80, borderRadius: 40,
+    backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center',
+    marginBottom: 12, borderWidth: 3, borderColor: 'rgba(255,255,255,0.35)',
   },
   profileAvatarText: { color: '#fff', fontSize: 34, fontWeight: '800' },
   verifiedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: 99,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    marginBottom: 12,
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 99,
+    paddingHorizontal: 12, paddingVertical: 4, marginBottom: 12,
   },
   verifiedText: { fontSize: 10, fontWeight: '700', color: '#fff', letterSpacing: 1.2 },
   profileName: { fontSize: 22, fontWeight: '700', color: '#fff', marginBottom: 4 },
   profileRole: { fontSize: 13, color: 'rgba(255,255,255,0.65)' },
 
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 1,
+    backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 12,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 1,
   },
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#767683',
-    letterSpacing: 1,
-    marginBottom: 12,
-  },
+  sectionLabel: { fontSize: 11, fontWeight: '700', color: '#767683', letterSpacing: 1, marginBottom: 12 },
   detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F5F5F5',
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F5F5F5',
   },
   lastRow: { borderBottomWidth: 0 },
   detailValueRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -289,56 +289,27 @@ const styles = StyleSheet.create({
   balanceValue: { color: '#2E7D32', fontSize: 16 },
 
   securityNote: {
-    flexDirection: 'row',
-    gap: 8,
-    backgroundColor: '#E3F2FD',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
-    alignItems: 'flex-start',
+    flexDirection: 'row', gap: 8, backgroundColor: '#E3F2FD',
+    borderRadius: 12, padding: 12, marginBottom: 12, alignItems: 'flex-start',
   },
   securityText: { flex: 1, fontSize: 12, color: '#1565C0', lineHeight: 18 },
 
   primaryBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: PRIMARY,
-    borderRadius: 50,
-    height: 52,
-    marginBottom: 10,
-    shadowColor: PRIMARY,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: PRIMARY, borderRadius: 50, height: 52, marginBottom: 10,
+    shadowColor: PRIMARY, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8, elevation: 4,
   },
   primaryBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
   secondaryBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#fff',
-    borderRadius: 50,
-    height: 52,
-    marginBottom: 10,
-    borderWidth: 1.5,
-    borderColor: PRIMARY,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: '#fff', borderRadius: 50, height: 52, marginBottom: 10,
+    borderWidth: 1.5, borderColor: PRIMARY,
   },
   secondaryBtnText: { color: PRIMARY, fontSize: 15, fontWeight: '700' },
   logoutBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#FFF0F0',
-    borderRadius: 50,
-    height: 52,
-    marginBottom: 10,
-    borderWidth: 1.5,
-    borderColor: '#FFCDD2',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: '#FFF0F0', borderRadius: 50, height: 52, marginBottom: 10,
+    borderWidth: 1.5, borderColor: '#FFCDD2',
   },
   logoutBtnText: { color: '#BA1A1A', fontSize: 15, fontWeight: '700' },
 });

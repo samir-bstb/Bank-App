@@ -5,7 +5,6 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +12,76 @@ import { router } from 'expo-router';
 import { useAuth } from '../../hooks/useAuth';
 import { adminGetUsers, adminGetLogs, type AdminUser, type AdminLog } from '../../services/admin';
 import AdminBottomTabs from '../../components/AdminBottomTabs';
+import Skeleton from '../../components/Skeleton';
+
+function AdminSkeleton() {
+  return (
+    <SafeAreaView style={styles.root} edges={['top']}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={[styles.header, { marginBottom: 8 }]}>
+          <View style={{ gap: 6 }}>
+            <Skeleton width={110} height={18} radius={8} />
+            <Skeleton width={160} height={12} radius={6} />
+          </View>
+          <Skeleton width={38} height={38} radius={19} />
+        </View>
+
+        {/* Status card */}
+        <Skeleton width="100%" height={62} radius={16} style={{ marginBottom: 12 }} />
+
+        {/* Stats grid */}
+        <View style={styles.statsGrid}>
+          {[1, 2, 3, 4].map(i => (
+            <View key={i} style={[styles.statCard, { backgroundColor: '#F5F5F7' }]}>
+              <Skeleton width={28} height={28} radius={14} />
+              <Skeleton width={40} height={28} radius={8} style={{ marginTop: 4 }} />
+              <Skeleton width={70} height={12} radius={6} style={{ marginTop: 4 }} />
+            </View>
+          ))}
+        </View>
+
+        {/* Recent users card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Skeleton width={140} height={15} radius={7} />
+            <Skeleton width={70} height={13} radius={6} />
+          </View>
+          {[1, 2, 3, 4].map(i => (
+            <View key={i} style={[styles.userRow, i < 4 && styles.rowBorder]}>
+              <Skeleton width={36} height={36} radius={18} />
+              <View style={{ flex: 1, gap: 7 }}>
+                <Skeleton width="50%" height={13} radius={6} />
+                <Skeleton width="28%" height={11} radius={5} />
+              </View>
+              <Skeleton width={60} height={22} radius={99} />
+            </View>
+          ))}
+        </View>
+
+        {/* Logs card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Skeleton width={175} height={15} radius={7} />
+            <Skeleton width={70} height={13} radius={6} />
+          </View>
+          {[1, 2, 3, 4, 5].map(i => (
+            <View key={i} style={[styles.logRow, i < 5 && styles.rowBorder]}>
+              <View style={styles.logTop}>
+                <Skeleton width={80} height={20} radius={99} />
+                <Skeleton width={40} height={11} radius={5} />
+              </View>
+              <Skeleton width="70%" height={12} radius={6} style={{ marginTop: 2 }} />
+            </View>
+          ))}
+        </View>
+
+        <View style={{ height: 16 }} />
+      </ScrollView>
+      <AdminBottomTabs active="panel" />
+    </SafeAreaView>
+  );
+}
 
 const PRIMARY = '#1A237E';
 const BACKGROUND = '#F9F9FB';
@@ -45,6 +114,8 @@ export default function AdminDashboard() {
   const blockedCount = users.filter(u => u.is_blocked).length;
   const clientCount = users.filter(u => u.role === 'client').length;
   const adminCount = users.filter(u => u.role === 'admin').length;
+
+  if (loading) return <AdminSkeleton />;
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -88,101 +159,93 @@ export default function AdminDashboard() {
         </View>
 
         {/* Stats grid */}
-        {loading ? (
-          <ActivityIndicator color={PRIMARY} style={{ marginVertical: 24 }} />
-        ) : (
-          <View style={styles.statsGrid}>
-            <View style={[styles.statCard, { backgroundColor: '#E8EAF6' }]}>
-              <Ionicons name="people" size={24} color={PRIMARY} />
-              <Text style={styles.statNum}>{users.length}</Text>
-              <Text style={styles.statLabel}>Total Usuarios</Text>
-            </View>
-            <View style={[styles.statCard, { backgroundColor: '#E8F5E9' }]}>
-              <Ionicons name="person-circle" size={24} color="#2E7D32" />
-              <Text style={[styles.statNum, { color: '#2E7D32' }]}>{clientCount}</Text>
-              <Text style={styles.statLabel}>Clientes</Text>
-            </View>
-            <View style={[styles.statCard, { backgroundColor: '#FFEBEE' }]}>
-              <Ionicons name="ban" size={24} color="#C62828" />
-              <Text style={[styles.statNum, { color: '#C62828' }]}>{blockedCount}</Text>
-              <Text style={styles.statLabel}>Bloqueados</Text>
-            </View>
-            <View style={[styles.statCard, { backgroundColor: '#FFF8E1' }]}>
-              <Ionicons name="shield" size={24} color="#F57F17" />
-              <Text style={[styles.statNum, { color: '#F57F17' }]}>{adminCount}</Text>
-              <Text style={styles.statLabel}>Admins</Text>
-            </View>
+        <View style={styles.statsGrid}>
+          <View style={[styles.statCard, { backgroundColor: '#E8EAF6' }]}>
+            <Ionicons name="people" size={24} color={PRIMARY} />
+            <Text style={styles.statNum}>{users.length}</Text>
+            <Text style={styles.statLabel}>Total Usuarios</Text>
           </View>
-        )}
+          <View style={[styles.statCard, { backgroundColor: '#E8F5E9' }]}>
+            <Ionicons name="person-circle" size={24} color="#2E7D32" />
+            <Text style={[styles.statNum, { color: '#2E7D32' }]}>{clientCount}</Text>
+            <Text style={styles.statLabel}>Clientes</Text>
+          </View>
+          <View style={[styles.statCard, { backgroundColor: '#FFEBEE' }]}>
+            <Ionicons name="ban" size={24} color="#C62828" />
+            <Text style={[styles.statNum, { color: '#C62828' }]}>{blockedCount}</Text>
+            <Text style={styles.statLabel}>Bloqueados</Text>
+          </View>
+          <View style={[styles.statCard, { backgroundColor: '#FFF8E1' }]}>
+            <Ionicons name="shield" size={24} color="#F57F17" />
+            <Text style={[styles.statNum, { color: '#F57F17' }]}>{adminCount}</Text>
+            <Text style={styles.statLabel}>Admins</Text>
+          </View>
+        </View>
 
         {/* Recent users */}
-        {!loading && (
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>Usuarios Recientes</Text>
-              <TouchableOpacity onPress={() => router.push('/admin/users')}>
-                <Text style={styles.viewAll}>Ver todos →</Text>
-              </TouchableOpacity>
-            </View>
-            {users.slice(0, 4).map((u, i) => (
-              <TouchableOpacity
-                key={u.id}
-                style={[styles.userRow, i < 3 && styles.rowBorder]}
-                onPress={() => router.push(`/admin/user/${u.id}` as never)}
-              >
-                <View style={styles.userAvatar}>
-                  <Text style={styles.userAvatarText}>{u.username[0].toUpperCase()}</Text>
-                </View>
-                <View style={styles.userInfo}>
-                  <Text style={styles.userName}>{u.username}</Text>
-                  <Text style={styles.userRole}>{u.role}</Text>
-                </View>
-                <View style={[
-                  styles.statusPill,
-                  { backgroundColor: u.is_blocked ? '#FFEBEE' : '#E8F5E9' },
-                ]}>
-                  <Text style={[styles.statusPillText, { color: u.is_blocked ? '#C62828' : '#2E7D32' }]}>
-                    {u.is_blocked ? 'Bloqueado' : 'Activo'}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>Usuarios Recientes</Text>
+            <TouchableOpacity onPress={() => router.push('/admin/users')}>
+              <Text style={styles.viewAll}>Ver todos →</Text>
+            </TouchableOpacity>
           </View>
-        )}
+          {users.slice(0, 4).map((u, i) => (
+            <TouchableOpacity
+              key={u.id}
+              style={[styles.userRow, i < 3 && styles.rowBorder]}
+              onPress={() => router.push(`/admin/user/${u.id}` as never)}
+            >
+              <View style={styles.userAvatar}>
+                <Text style={styles.userAvatarText}>{u.username[0].toUpperCase()}</Text>
+              </View>
+              <View style={styles.userInfo}>
+                <Text style={styles.userName}>{u.username}</Text>
+                <Text style={styles.userRole}>{u.role}</Text>
+              </View>
+              <View style={[
+                styles.statusPill,
+                { backgroundColor: u.is_blocked ? '#FFEBEE' : '#E8F5E9' },
+              ]}>
+                <Text style={[styles.statusPillText, { color: u.is_blocked ? '#C62828' : '#2E7D32' }]}>
+                  {u.is_blocked ? 'Bloqueado' : 'Activo'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
 
         {/* Security logs */}
-        {!loading && (
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>Registros de Seguridad</Text>
-              <TouchableOpacity onPress={() => router.push('/admin/logs')}>
-                <Text style={styles.viewAll}>Ver todos →</Text>
-              </TouchableOpacity>
-            </View>
-            {logs.length === 0 ? (
-              <Text style={styles.emptyText}>Sin registros aún</Text>
-            ) : (
-              logs.slice(0, 5).map((log, i) => {
-                const ec = EVENT_COLORS[log.event_type] ?? { bg: '#F5F5F5', color: '#616161' };
-                return (
-                  <View key={log.id} style={[styles.logRow, i < 4 && styles.rowBorder]}>
-                    <View style={styles.logTop}>
-                      <View style={[styles.logBadge, { backgroundColor: ec.bg }]}>
-                        <Text style={[styles.logBadgeText, { color: ec.color }]}>
-                          {log.event_type.replace(/_/g, ' ')}
-                        </Text>
-                      </View>
-                      <Text style={styles.logTime}>
-                        {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>Registros de Seguridad</Text>
+            <TouchableOpacity onPress={() => router.push('/admin/logs')}>
+              <Text style={styles.viewAll}>Ver todos →</Text>
+            </TouchableOpacity>
+          </View>
+          {logs.length === 0 ? (
+            <Text style={styles.emptyText}>Sin registros aún</Text>
+          ) : (
+            logs.slice(0, 5).map((log, i) => {
+              const ec = EVENT_COLORS[log.event_type] ?? { bg: '#F5F5F5', color: '#616161' };
+              return (
+                <View key={log.id} style={[styles.logRow, i < 4 && styles.rowBorder]}>
+                  <View style={styles.logTop}>
+                    <View style={[styles.logBadge, { backgroundColor: ec.bg }]}>
+                      <Text style={[styles.logBadgeText, { color: ec.color }]}>
+                        {log.event_type.replace(/_/g, ' ')}
                       </Text>
                     </View>
-                    <Text style={styles.logDesc} numberOfLines={1}>{log.description}</Text>
+                    <Text style={styles.logTime}>
+                      {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </Text>
                   </View>
-                );
-              })
-            )}
-          </View>
-        )}
+                  <Text style={styles.logDesc} numberOfLines={1}>{log.description}</Text>
+                </View>
+              );
+            })
+          )}
+        </View>
 
         <View style={{ height: 16 }} />
       </ScrollView>

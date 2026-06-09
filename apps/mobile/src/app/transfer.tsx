@@ -16,6 +16,7 @@ import { useAuth } from '../hooks/useAuth';
 import { getAccounts, type Account } from '../services/accounts';
 import { getTransactions, transferFunds, type Transaction } from '../services/transactions';
 import BottomTabs from '../components/BottomTabs';
+import Skeleton from '../components/Skeleton';
 
 const PRIMARY = '#1A237E';
 const BACKGROUND = '#F9F9FB';
@@ -43,6 +44,44 @@ function showMessage(title: string, msg: string) {
   } else {
     Alert.alert(title, msg);
   }
+}
+
+function TransferSkeleton() {
+  return (
+    <SafeAreaView style={styles.root} edges={['top']}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={[styles.header, { marginBottom: 8 }]}>
+          <Skeleton width={100} height={18} radius={8} />
+          <Skeleton width={36} height={36} radius={18} />
+        </View>
+
+        {/* From card */}
+        <Skeleton width="100%" height={90} radius={16} style={{ marginBottom: 12 }} />
+
+        {/* New transfer button */}
+        <Skeleton width="100%" height={50} radius={25} style={{ marginBottom: 12 }} />
+
+        {/* Recent transfers card */}
+        <View style={styles.card}>
+          <Skeleton width={190} height={15} radius={7} style={{ marginBottom: 20 }} />
+          {[1, 2, 3].map(i => (
+            <View key={i} style={[styles.recentRow, i < 3 && styles.rowBorder]}>
+              <Skeleton width={40} height={40} radius={20} />
+              <View style={{ flex: 1, gap: 8 }}>
+                <Skeleton width="55%" height={13} radius={6} />
+                <Skeleton width="30%" height={11} radius={5} />
+              </View>
+              <Skeleton width={55} height={14} radius={6} />
+            </View>
+          ))}
+        </View>
+
+        <View style={{ height: 16 }} />
+      </ScrollView>
+      <BottomTabs active="transfer" />
+    </SafeAreaView>
+  );
 }
 
 export default function TransferScreen() {
@@ -102,6 +141,8 @@ export default function TransferScreen() {
       setSending(false);
     }
   }
+
+  if (loadingData) return <TransferSkeleton />;
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -192,38 +233,36 @@ export default function TransferScreen() {
         )}
 
         {/* Recent transfers */}
-        {!loadingData && (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Transferencias Enviadas</Text>
-            {recentTxs.length === 0 ? (
-              <Text style={styles.emptyText}>Sin transferencias enviadas aún</Text>
-            ) : (
-              recentTxs.map((tx, i) => (
-                <TouchableOpacity
-                  key={tx.id}
-                  style={[styles.recentRow, i < recentTxs.length - 1 && styles.rowBorder]}
-                  onPress={() => {
-                    setReceiver(tx.receiver_account_id);
-                    setShowForm(true);
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.recentIcon}>
-                    <Ionicons name="swap-horizontal" size={18} color={PRIMARY} />
-                  </View>
-                  <View style={styles.recentInfo}>
-                    <Text style={styles.recentTitle}>Transferencia enviada</Text>
-                    <Text style={styles.recentDate}>{relativeDate(tx.created_at)}</Text>
-                  </View>
-                  <View style={styles.recentRight}>
-                    <Text style={styles.recentAmount}>-${tx.amount.toFixed(2)}</Text>
-                    <Ionicons name="chevron-forward" size={14} color="#BDBDBD" />
-                  </View>
-                </TouchableOpacity>
-              ))
-            )}
-          </View>
-        )}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Transferencias Enviadas</Text>
+          {recentTxs.length === 0 ? (
+            <Text style={styles.emptyText}>Sin transferencias enviadas aún</Text>
+          ) : (
+            recentTxs.map((tx, i) => (
+              <TouchableOpacity
+                key={tx.id}
+                style={[styles.recentRow, i < recentTxs.length - 1 && styles.rowBorder]}
+                onPress={() => {
+                  setReceiver(tx.receiver_account_id);
+                  setShowForm(true);
+                }}
+                activeOpacity={0.7}
+              >
+                <View style={styles.recentIcon}>
+                  <Ionicons name="swap-horizontal" size={18} color={PRIMARY} />
+                </View>
+                <View style={styles.recentInfo}>
+                  <Text style={styles.recentTitle}>Transferencia enviada</Text>
+                  <Text style={styles.recentDate}>{relativeDate(tx.created_at)}</Text>
+                </View>
+                <View style={styles.recentRight}>
+                  <Text style={styles.recentAmount}>-${tx.amount.toFixed(2)}</Text>
+                  <Ionicons name="chevron-forward" size={14} color="#BDBDBD" />
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
+        </View>
 
         <View style={{ height: 16 }} />
       </ScrollView>

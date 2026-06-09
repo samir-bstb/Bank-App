@@ -5,7 +5,6 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  ActivityIndicator,
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,6 +14,7 @@ import { useAuth } from '../hooks/useAuth';
 import { getAccounts, type Account } from '../services/accounts';
 import { getTransactions, type Transaction } from '../services/transactions';
 import BottomTabs from '../components/BottomTabs';
+import Skeleton from '../components/Skeleton';
 
 const PRIMARY = '#1A237E';
 const BACKGROUND = '#F9F9FB';
@@ -30,6 +30,56 @@ function relativeDate(dateStr: string): string {
 
 const TX_BG = ['#E8EAF6', '#E8F5E9', '#FFF8E1', '#F3E5F5', '#FBE9E7'];
 const TX_COLOR = [PRIMARY, '#2E7D32', '#F57F17', '#6A1B9A', '#BF360C'];
+
+function HomeSkeleton() {
+  return (
+    <SafeAreaView style={styles.root} edges={['top']}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Skeleton width={40} height={40} radius={20} />
+            <View style={{ gap: 6 }}>
+              <Skeleton width={90} height={14} radius={7} />
+              <Skeleton width={120} height={12} radius={6} />
+            </View>
+          </View>
+        </View>
+
+        {/* Balance card */}
+        <Skeleton width="100%" height={138} radius={20} style={{ marginBottom: 12 }} />
+
+        {/* Quick actions card */}
+        <View style={styles.card}>
+          <Skeleton width={130} height={15} radius={7} style={{ marginBottom: 20 }} />
+          <Skeleton width={52} height={52} radius={26} style={{ alignSelf: 'center' }} />
+          <Skeleton width={48} height={11} radius={5} style={{ alignSelf: 'center', marginTop: 8 }} />
+        </View>
+
+        {/* Transactions card */}
+        <View style={styles.card}>
+          <Skeleton width={170} height={15} radius={7} style={{ marginBottom: 20 }} />
+          {[1, 2, 3].map(i => (
+            <View key={i} style={[styles.txRow, i < 3 && styles.txBorder]}>
+              <Skeleton width={42} height={42} radius={21} />
+              <View style={{ flex: 1, gap: 8 }}>
+                <Skeleton width="60%" height={13} radius={6} />
+                <Skeleton width="35%" height={11} radius={5} />
+              </View>
+              <View style={{ alignItems: 'flex-end', gap: 6 }}>
+                <Skeleton width={60} height={14} radius={6} />
+                <Skeleton width={50} height={18} radius={99} />
+              </View>
+            </View>
+          ))}
+        </View>
+
+        <View style={{ height: 16 }} />
+      </ScrollView>
+      <BottomTabs active="home" />
+    </SafeAreaView>
+  );
+}
 
 export default function HomeScreen() {
   const { user, token } = useAuth();
@@ -60,13 +110,7 @@ export default function HomeScreen() {
     }
   }
 
-  if (loading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={PRIMARY} />
-      </View>
-    );
-  }
+  if (loading) return <HomeSkeleton />;
 
   const balance = account?.balance ?? 0;
 
@@ -110,7 +154,7 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* Quick actions */}
+        {/* Quick actions — only functional buttons */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Acciones Rápidas</Text>
           <View style={styles.actionsRow}>
@@ -119,27 +163,6 @@ export default function HomeScreen() {
                 <Ionicons name="arrow-up-outline" size={22} color={PRIMARY} />
               </View>
               <Text style={styles.actionLabel}>Enviar</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.actionBtn}>
-              <View style={[styles.actionCircle, { backgroundColor: '#E8F5E9' }]}>
-                <Ionicons name="arrow-down-outline" size={22} color="#2E7D32" />
-              </View>
-              <Text style={styles.actionLabel}>Recibir</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.actionBtn}>
-              <View style={[styles.actionCircle, { backgroundColor: '#FFF8E1' }]}>
-                <Ionicons name="qr-code-outline" size={22} color="#F57F17" />
-              </View>
-              <Text style={styles.actionLabel}>QR</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/account')}>
-              <View style={[styles.actionCircle, { backgroundColor: '#F3E5F5' }]}>
-                <Ionicons name="document-text-outline" size={22} color="#6A1B9A" />
-              </View>
-              <Text style={styles.actionLabel}>Estado</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -194,7 +217,6 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: BACKGROUND },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: BACKGROUND },
   scroll: { flex: 1 },
   content: { padding: 16, paddingTop: 8 },
 
@@ -241,7 +263,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { fontSize: 15, fontWeight: '700', color: '#1A1C1D', marginBottom: 16 },
 
-  actionsRow: { flexDirection: 'row', justifyContent: 'space-around' },
+  actionsRow: { flexDirection: 'row' },
   actionBtn: { alignItems: 'center', gap: 8 },
   actionCircle: { width: 52, height: 52, borderRadius: 26, justifyContent: 'center', alignItems: 'center' },
   actionLabel: { fontSize: 12, color: '#454652', fontWeight: '500' },
@@ -257,5 +279,4 @@ const styles = StyleSheet.create({
   statusBadge: { backgroundColor: '#E8F5E9', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 99 },
   statusText: { fontSize: 10, fontWeight: '700', color: '#2E7D32' },
   emptyText: { textAlign: 'center', color: '#9E9E9E', paddingVertical: 20, fontSize: 14 },
-
 });
