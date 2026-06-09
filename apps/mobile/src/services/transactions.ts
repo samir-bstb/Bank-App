@@ -6,6 +6,15 @@ export type TransferResult = {
   amount: number;
 };
 
+export type Transaction = {
+  id: string;
+  sender_account_id: string;
+  receiver_account_id: string;
+  amount: number;
+  status: string;
+  created_at: string;
+};
+
 export async function transferFunds(
   token: string,
   sender_account_id: string,
@@ -35,4 +44,17 @@ export async function transferFunds(
   }
 
   return data;
+}
+
+export async function getTransactions(
+  token: string,
+  accountId: string
+): Promise<Transaction[]> {
+  const res = await fetch(
+    `${API_URL}/api/transactions?account_id=${accountId}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error);
+  return data.transactions;
 }
