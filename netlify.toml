@@ -23,3 +23,6 @@
   from = "/*"
   to = "/index.html"
   status = 200
+base = "apps/mobile"
+command = "npx expo export --platform web"
+publish = "dist"
